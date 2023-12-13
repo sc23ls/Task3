@@ -17,17 +17,38 @@ void tokeniseRecord(char *record, char delimiter, char *date, char *time, int *s
     char *ptr = strtok(record, &delimiter);
     if (ptr != NULL)
     {
+        if (strlen(ptr)!=10){
+            printf("Error: invalid file\n");
+            exit(1);
+        }
         strcpy(date, ptr);
         ptr = strtok(NULL, &delimiter);
         if (ptr != NULL)
         {
+            if (strlen(ptr)!=5){
+                printf("Error: invalid file\n");
+                exit(1);
+            }
             strcpy(time, ptr);
             ptr = strtok(NULL, &delimiter);
             if (ptr != NULL)
             {
+                if(atoi(ptr)<=0){
+                    printf("Error: invalid file\n");
+                    exit(1);
+                }
                 *steps = atoi(ptr);
+            }else{
+                printf("Error: invalid file\n");
+                exit(1);
             }
+        }else{
+            printf("Error: invalid file\n");
+            exit(1);
         }
+    }else{
+        printf("Error: invalid file\n");
+        exit(1);
     }
 }
 void swap(FitnessData* xp, FitnessData* yp)
@@ -59,10 +80,9 @@ FILE *open_file(char fileName[], char mode[])
     FILE *file = fopen(fileName, mode);
     if (file == NULL)
     {
-        printf("Error: could not open file\n");
+        printf("Error: invalid file\n");
         exit(1);
     }
-    printf("File successfully loaded.\n");
     return file;
 }
 
@@ -72,27 +92,27 @@ int main(){
     printf("Enter filename: ");
     scanf("%s", fileName);
     FILE *file = open_file(fileName, "r");
-    int i;
+    int noRec = 0;
     char line_buffer[200];
     int buffer_size = 200;
-    char *delimeter = ", ";
+    char delimeter = ',';
     while (fgets(line_buffer, buffer_size, file) != NULL){
-        char *stepsTemp = (char *)malloc(6);
+        int stepsTemp;
         char *dateTemp = (char *)malloc(11);
         char *timeTemp = (char *)malloc(6);
-        tokeniseRecord(line_buffer, delimeter, dateTemp, timeTemp, stepsTemp);
+        tokeniseRecord(line_buffer, delimeter, dateTemp, timeTemp, &stepsTemp);
 
-        strcpy(data[i].date, dateTemp);
-        strcpy(data[i].time, timeTemp);
-        data[i].steps = atoi(stepsTemp);
+        strcpy(data[noRec].date, dateTemp);
+        strcpy(data[noRec].time, timeTemp);
+        data[noRec].steps = stepsTemp;
 
-        i++;
+        noRec++;
     }
-    bubbleSort(data, i);
+    bubbleSort(data, noRec);
     FILE *newFile = open_file(strcat(fileName, ".tsv"), "w");
     fclose(file);
-    for (int j = 0; j<i; j++){
-        // fprintf(newFile, "date)
+    for (int j = 0; j<noRec; j++){
+        fprintf(newFile, "%s\t%s\t%d\n", data[j].date, data[j].time, data[j].steps);
     }
 }
     
